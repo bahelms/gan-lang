@@ -11,9 +11,23 @@ defmodule Lexer do
       "=" ->
         {next_grapheme(lex), Token.match()}
 
+      "+" ->
+        {next_grapheme(lex), Token.plus()}
+
+      "(" ->
+        {next_grapheme(lex), Token.lparen()}
+
+      ")" ->
+        {next_grapheme(lex), Token.rparen()}
+
+      ":" ->
+        {next_grapheme(lex), Token.colon()}
+
       " " ->
-        # I think this is TCO
-        lex |> next_grapheme() |> next_token()
+        {next_grapheme(lex), Token.space()}
+
+      "\n" ->
+        {next_grapheme(lex), Token.newline()}
 
       nil ->
         {lex, Token.eof()}
@@ -29,8 +43,7 @@ defmodule Lexer do
             {next_grapheme(lex), Token.int(literal)}
 
           true ->
-            # illegal char
-            IO.inspect(grapheme, label: "default")
+            {lex, Token.illegal(grapheme)}
         end
     end
   end
@@ -47,7 +60,7 @@ defmodule Lexer do
     if letter?(grapheme) do
       read_identifier(identifier <> grapheme, next_grapheme(lex))
     else
-      {identifier, next_grapheme(lex)}
+      {identifier, lex}
     end
   end
 
@@ -55,7 +68,7 @@ defmodule Lexer do
     if digit?(grapheme) do
       read_number(number <> grapheme, next_grapheme(lex))
     else
-      {number, next_grapheme(lex)}
+      {number, lex}
     end
   end
 
