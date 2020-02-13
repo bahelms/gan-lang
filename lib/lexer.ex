@@ -35,11 +35,11 @@ defmodule Lexer do
       grapheme ->
         cond do
           letter?(grapheme) ->
-            {literal, lex} = read_identifier(grapheme, lex)
+            {literal, lex} = read_literal(grapheme, lex, &letter?/1)
             {next_grapheme(lex), Token.ident(literal)}
 
           digit?(grapheme) ->
-            {literal, lex} = read_number(grapheme, lex)
+            {literal, lex} = read_literal(grapheme, lex, &digit?/1)
             {next_grapheme(lex), Token.int(literal)}
 
           true ->
@@ -56,23 +56,13 @@ defmodule Lexer do
     struct(lex, grapheme: nil)
   end
 
-  defp read_identifier(identifier, %{input: [grapheme | _]} = lex) do
-    if letter?(grapheme) do
-      read_identifier(identifier <> grapheme, next_grapheme(lex))
+  defp read_literal(literal, %{input: [grapheme | _]} = lex, condition) do
+    if condition.(grapheme) do
+      read_literal(literal <> grapheme, next_grapheme(lex), condition)
     else
-      {identifier, lex}
+      {literal, lex}
     end
   end
-
-  defp read_number(number, %{input: [grapheme | _]} = lex) do
-    if digit?(grapheme) do
-      read_number(number <> grapheme, next_grapheme(lex))
-    else
-      {number, lex}
-    end
-  end
-
-  defp read_number(number, lex), do: {number, lex}
 
   defp letter?(grapheme) do
     # This only supports ASCII for now.
