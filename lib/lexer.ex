@@ -20,6 +20,9 @@ defmodule Lexer do
       ")" ->
         {next_grapheme(lex), Token.rparen()}
 
+      "," ->
+        {next_grapheme(lex), Token.comma()}
+
       ":" ->
         {next_grapheme(lex), Token.colon()}
 

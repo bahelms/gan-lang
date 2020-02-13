@@ -29,8 +29,8 @@ defmodule LexerTest do
 
   test "named function definitions" do
     """
-    fn AddOne(num):
-      num + 1
+    fn AddOne(num, extra):
+      num + extra + 1
     """
     |> test_tokens([
       {:FUNCTION, "fn"},
@@ -38,12 +38,19 @@ defmodule LexerTest do
       {:IDENT, "AddOne"},
       {:LPAREN, "("},
       {:IDENT, "num"},
+      {:COMMA, ","},
+      {:SPACE, " "},
+      {:IDENT, "extra"},
       {:RPAREN, ")"},
       {:COLON, ":"},
       {:NEWLINE, "\n"},
       {:SPACE, " "},
       {:SPACE, " "},
       {:IDENT, "num"},
+      {:SPACE, " "},
+      {:PLUS, "+"},
+      {:SPACE, " "},
+      {:IDENT, "extra"},
       {:SPACE, " "},
       {:PLUS, "+"},
       {:SPACE, " "},

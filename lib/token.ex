@@ -10,6 +10,7 @@ defmodule Token do
   def plus, do: %Token{type: :PLUS, literal: "+"}
   def lparen, do: %Token{type: :LPAREN, literal: "("}
   def rparen, do: %Token{type: :RPAREN, literal: ")"}
+  def comma, do: %Token{type: :COMMA, literal: ","}
   def colon, do: %Token{type: :COLON, literal: ":"}
   def space, do: %Token{type: :SPACE, literal: " "}
   def newline, do: %Token{type: :NEWLINE, literal: "\n"}
