@@ -8,6 +8,7 @@ defmodule Token do
 
   def match, do: %Token{type: :MATCH, literal: "="}
   def plus, do: %Token{type: :PLUS, literal: "+"}
+  def asterisk, do: %Token{type: :ASTERISK, literal: "*"}
   def lparen, do: %Token{type: :LPAREN, literal: "("}
   def rparen, do: %Token{type: :RPAREN, literal: ")"}
   def comma, do: %Token{type: :COMMA, literal: ","}

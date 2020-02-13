@@ -60,6 +60,70 @@ defmodule LexerTest do
     ])
   end
 
+  test "function literal binding" do
+    """
+    val multiply = fn(x,y):
+      x*y
+    """
+    |> test_tokens([
+      {:VAL, "val"},
+      {:SPACE, " "},
+      {:IDENT, "multiply"},
+      {:SPACE, " "},
+      {:MATCH, "="},
+      {:SPACE, " "},
+      {:FUNCTION, "fn"},
+      {:LPAREN, "("},
+      {:IDENT, "x"},
+      {:COMMA, ","},
+      {:IDENT, "y"},
+      {:RPAREN, ")"},
+      {:COLON, ":"},
+      {:NEWLINE, "\n"},
+      {:SPACE, " "},
+      {:SPACE, " "},
+      {:IDENT, "x"},
+      {:ASTERISK, "*"},
+      {:IDENT, "y"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
+  test "functions definitions without args don't have parens " do
+    """
+    val answer = fn:
+      42
+    fn question:
+      someClosureBinding
+    """
+    |> test_tokens([
+      {:VAL, "val"},
+      {:SPACE, " "},
+      {:IDENT, "answer"},
+      {:SPACE, " "},
+      {:MATCH, "="},
+      {:SPACE, " "},
+      {:FUNCTION, "fn"},
+      {:COLON, ":"},
+      {:NEWLINE, "\n"},
+      {:SPACE, " "},
+      {:SPACE, " "},
+      {:INT, "42"},
+      {:NEWLINE, "\n"},
+      {:FUNCTION, "fn"},
+      {:SPACE, " "},
+      {:IDENT, "question"},
+      {:COLON, ":"},
+      {:NEWLINE, "\n"},
+      {:SPACE, " "},
+      {:SPACE, " "},
+      {:IDENT, "someClosureBinding"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
   defp test_tokens(input, tokens) do
     tokens
     |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->

@@ -14,6 +14,9 @@ defmodule Lexer do
       "+" ->
         {next_grapheme(lex), Token.plus()}
 
+      "*" ->
+        {next_grapheme(lex), Token.asterisk()}
+
       "(" ->
         {next_grapheme(lex), Token.lparen()}
 
@@ -46,6 +49,7 @@ defmodule Lexer do
             {next_grapheme(lex), Token.int(literal)}
 
           true ->
+            IO.inspect(grapheme, label: "ILLEGAL")
             {lex, Token.illegal(grapheme)}
         end
     end
