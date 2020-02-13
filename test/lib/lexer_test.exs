@@ -4,7 +4,7 @@ defmodule LexerTest do
   test "val statements" do
     """
     val five = 5
-    val another = 10
+    val another = 10 / 2
     """
     |> test_tokens([
       {:VAL, "val"},
@@ -22,6 +22,10 @@ defmodule LexerTest do
       {:MATCH, "="},
       {:SPACE, " "},
       {:INT, "10"},
+      {:SPACE, " "},
+      {:FSLASH, "/"},
+      {:SPACE, " "},
+      {:INT, "2"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
     ])
@@ -30,7 +34,7 @@ defmodule LexerTest do
   test "named function definitions" do
     """
     fn AddOne(num, extra):
-      num + extra + 1
+      num + extra - 1
     """
     |> test_tokens([
       {:FUNCTION, "fn"},
@@ -52,7 +56,7 @@ defmodule LexerTest do
       {:SPACE, " "},
       {:IDENT, "extra"},
       {:SPACE, " "},
-      {:PLUS, "+"},
+      {:MINUS, "-"},
       {:SPACE, " "},
       {:INT, "1"},
       {:NEWLINE, "\n"},

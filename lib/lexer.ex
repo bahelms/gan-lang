@@ -14,8 +14,14 @@ defmodule Lexer do
       "+" ->
         {next_grapheme(lex), Token.plus()}
 
+      "-" ->
+        {next_grapheme(lex), Token.minus()}
+
       "*" ->
         {next_grapheme(lex), Token.asterisk()}
+
+      "/" ->
+        {next_grapheme(lex), Token.fslash()}
 
       "(" ->
         {next_grapheme(lex), Token.lparen()}
