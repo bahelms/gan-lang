@@ -2,12 +2,11 @@ defmodule LexerTest do
   use ExUnit.Case
 
   test "val statements" do
-    input = """
+    """
     val five = 5
     val another = 10
     """
-
-    [
+    |> test_tokens([
       {:VAL, "val"},
       {:SPACE, " "},
       {:IDENT, "five"},
@@ -25,22 +24,15 @@ defmodule LexerTest do
       {:INT, "10"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
-    ]
-    |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->
-      {lex, token} = Lexer.next_token(lex)
-      assert token.type == expected_type
-      assert token.literal == expected_literal
-      lex
-    end)
+    ])
   end
 
   test "named function definitions" do
-    input = """
+    """
     fn AddOne(num):
       num + 1
     """
-
-    [
+    |> test_tokens([
       {:FUNCTION, "fn"},
       {:SPACE, " "},
       {:IDENT, "AddOne"},
@@ -58,7 +50,11 @@ defmodule LexerTest do
       {:INT, "1"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
-    ]
+    ])
+  end
+
+  defp test_tokens(input, tokens) do
+    tokens
     |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->
       {lex, token} = Lexer.next_token(lex)
       assert token.type == expected_type
