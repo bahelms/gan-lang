@@ -1,5 +1,27 @@
+defmodule Macros do
+  @doc """
+    This only supports ASCII for now.
+  """
+  @spec letter?(String.t()) :: boolean()
+  defmacro letter?(grapheme) do
+    quote do
+      (unquote(grapheme) >= "A" and unquote(grapheme) <= "Z") or
+        (unquote(grapheme) >= "a" and unquote(grapheme) <= "z")
+    end
+  end
+
+  @spec digit?(String.t()) :: boolean()
+  defmacro digit?(grapheme) do
+    quote do
+      unquote(grapheme) >= "0" and unquote(grapheme) <= "9"
+    end
+  end
+end
+
 defmodule Lexer do
   defstruct [:input, :grapheme]
+
+  import Macros
 
   def new(input) do
     [grapheme | input] = String.graphemes(input)
@@ -45,20 +67,23 @@ defmodule Lexer do
         {lex, Token.eof()}
 
       grapheme ->
-        cond do
-          letter?(grapheme) ->
-            {literal, lex} = read_literal(grapheme, lex, &letter?/1)
-            {next_grapheme(lex), Token.ident(literal)}
-
-          digit?(grapheme) ->
-            {literal, lex} = read_literal(grapheme, lex, &digit?/1)
-            {next_grapheme(lex), Token.int(literal)}
-
-          true ->
-            IO.inspect(grapheme, label: "ILLEGAL")
-            {lex, Token.illegal(grapheme)}
-        end
+        tokenize_unknown(grapheme, lex)
     end
+  end
+
+  defp tokenize_unknown(grapheme, lex) when letter?(grapheme) do
+    {literal, lex} = read_literal(grapheme, lex, &letter?/1)
+    {next_grapheme(lex), Token.ident(literal)}
+  end
+
+  defp tokenize_unknown(grapheme, lex) when digit?(grapheme) do
+    {literal, lex} = read_literal(grapheme, lex, &digit?/1)
+    {next_grapheme(lex), Token.int(literal)}
+  end
+
+  defp tokenize_unknown(grapheme, lex) do
+    IO.inspect(grapheme, label: "ILLEGAL")
+    {lex, Token.illegal(grapheme)}
   end
 
   defp next_grapheme(%{input: [grapheme | input]} = lex) do
@@ -76,11 +101,4 @@ defmodule Lexer do
       {literal, lex}
     end
   end
-
-  defp letter?(grapheme) do
-    # This only supports ASCII for now.
-    Regex.match?(~r/[a-zA-Z]/, grapheme)
-  end
-
-  defp digit?(grapheme), do: Regex.match?(~r/\d/, grapheme)
 end

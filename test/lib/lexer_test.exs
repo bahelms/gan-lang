@@ -6,7 +6,7 @@ defmodule LexerTest do
     val five = 5
     val another = 10 / 2
     """
-    |> test_tokens([
+    |> assert_tokens([
       {:VAL, "val"},
       {:SPACE, " "},
       {:IDENT, "five"},
@@ -36,7 +36,7 @@ defmodule LexerTest do
     fn AddOne(num, extra):
       num + extra - 1
     """
-    |> test_tokens([
+    |> assert_tokens([
       {:FUNCTION, "fn"},
       {:SPACE, " "},
       {:IDENT, "AddOne"},
@@ -69,7 +69,7 @@ defmodule LexerTest do
     val multiply = fn(x,y):
       x*y
     """
-    |> test_tokens([
+    |> assert_tokens([
       {:VAL, "val"},
       {:SPACE, " "},
       {:IDENT, "multiply"},
@@ -101,7 +101,7 @@ defmodule LexerTest do
     fn question:
       someClosureBinding
     """
-    |> test_tokens([
+    |> assert_tokens([
       {:VAL, "val"},
       {:SPACE, " "},
       {:IDENT, "answer"},
@@ -128,7 +128,7 @@ defmodule LexerTest do
     ])
   end
 
-  defp test_tokens(input, tokens) do
+  defp assert_tokens(input, tokens) do
     tokens
     |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->
       {lex, token} = Lexer.next_token(lex)
