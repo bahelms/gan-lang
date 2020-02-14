@@ -128,6 +128,34 @@ defmodule LexerTest do
     ])
   end
 
+  test "function calls" do
+    """
+    DoSomething(num, 9)
+    fn(x): x/0
+    """
+    |> assert_tokens([
+      {:IDENT, "DoSomething"},
+      {:LPAREN, "("},
+      {:IDENT, "num"},
+      {:COMMA, ","},
+      {:SPACE, " "},
+      {:INT, "9"},
+      {:RPAREN, ")"},
+      {:NEWLINE, "\n"},
+      {:FUNCTION, "fn"},
+      {:LPAREN, "("},
+      {:IDENT, "x"},
+      {:RPAREN, ")"},
+      {:COLON, ":"},
+      {:SPACE, " "},
+      {:IDENT, "x"},
+      {:FSLASH, "/"},
+      {:INT, "0"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
   defp assert_tokens(input, tokens) do
     tokens
     |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->

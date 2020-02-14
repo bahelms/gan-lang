@@ -1,6 +1,6 @@
 defmodule Macros do
   @doc """
-    This only supports ASCII for now.
+  This only supports ASCII for now.
   """
   @spec letter?(String.t()) :: boolean()
   defmacro letter?(grapheme) do
