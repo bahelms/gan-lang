@@ -1,7 +1,21 @@
 defmodule LexerTest do
   use ExUnit.Case
 
-  test "val statements" do
+  test "single val statement" do
+    "val five = 5"
+    |> assert_tokens([
+      {:VAL, "val"},
+      {:SPACE, " "},
+      {:IDENT, "five"},
+      {:SPACE, " "},
+      {:MATCH, "="},
+      {:SPACE, " "},
+      {:INT, "5"},
+      {:EOF, ""}
+    ])
+  end
+
+  test "multiple val statements with newlines" do
     """
     val five = 5
     val another = 10 / 2

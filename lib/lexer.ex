@@ -101,4 +101,8 @@ defmodule Lexer do
       {literal, lex}
     end
   end
+
+  defp read_literal(literal, lex, _) do
+    {literal, lex}
+  end
 end
