@@ -29,6 +29,18 @@ defmodule Parser do
     struct(parser, lexer: lex, token: peek, peek: token)
   end
 
+  defp skip_spaces(parser) do
+    case parser.token.type do
+      :SPACE ->
+        parser
+        |> next_token()
+        |> skip_spaces()
+
+      _ ->
+        parser
+    end
+  end
+
   defp set_precedences(parser) do
     parser
     |> struct(
@@ -96,22 +108,20 @@ defmodule Parser do
 
   def parse_val_stmt(parser) do
     node = %AST.Val{token: parser.token}
+    parser = next_token(parser)
     {name, parser} = parse_name(parser)
     {value, parser} = parse_value(parser)
+    parser = skip_spaces(parser)
     {struct(node, name: name, value: value), parser}
   end
 
   defp parse_name(parser) do
-    case parser.peek.type do
+    parser = skip_spaces(parser)
+
+    case parser.token.type do
       :IDENT ->
-        parser = next_token(parser)
         node = %AST.Identifier{value: parser.token.literal, token: parser.token}
         {node, next_token(parser)}
-
-      :SPACE ->
-        parser
-        |> next_token
-        |> parse_name
 
       type ->
         error = "expected next token to be :IDENT, got #{type} instead"
@@ -120,21 +130,16 @@ defmodule Parser do
   end
 
   defp parse_value(parser) do
-    case parser.peek.type do
+    parser = skip_spaces(parser)
+
+    case parser.token.type do
       :MATCH ->
         {value, parser} =
           parser
           |> next_token()
-          |> next_token()
-          |> next_token()
           |> parse_expression(@lowest)
 
         {value, next_token(parser)}
-
-      :SPACE ->
-        parser
-        |> next_token
-        |> parse_name
 
       type ->
         error = "expected next token to be :MATCH, got #{type} instead"
@@ -143,6 +148,8 @@ defmodule Parser do
   end
 
   defp parse_expression(parser, precedence) do
+    parser = skip_spaces(parser)
+
     case parser.prefix_parse_fns[parser.token.type] do
       nil ->
         error = "Prefix Parse function not found for #{parser.token.type}"

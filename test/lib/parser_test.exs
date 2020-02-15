@@ -28,7 +28,8 @@ defmodule ParserTest do
 
   test "val statements" do
     [
-      {"val five = 5", "five", 5}
+      {"val five = 5", "five", 5},
+      {"val        x        =        0    ", "x", 0}
     ]
     |> Enum.each(fn {input, expected_name, expected_value} ->
       {root, parser} =
