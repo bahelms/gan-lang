@@ -62,7 +62,8 @@ defmodule Parser do
     parser
     |> struct(
       prefix_parse_fns: %{
-        INT: &parse_integer_literal/1
+        INT: &parse_integer_literal/1,
+        IDENT: &parse_identifier/1
       }
     )
   end
@@ -101,8 +102,7 @@ defmodule Parser do
         parse_val_stmt(parser)
 
       _ ->
-        error = "Can't parse token: #{inspect(parser.token)}"
-        {nil, add_error(parser, error)}
+        parse_expression(parser, @lowest)
     end
   end
 
@@ -120,7 +120,7 @@ defmodule Parser do
 
     case parser.token.type do
       :IDENT ->
-        node = %AST.Identifier{value: parser.token.literal, token: parser.token}
+        {node, _} = parse_identifier(parser)
         {node, next_token(parser)}
 
       type ->
@@ -185,6 +185,11 @@ defmodule Parser do
       value: String.to_integer(parser.token.literal)
     }
 
+    {node, parser}
+  end
+
+  defp parse_identifier(parser) do
+    node = %AST.Identifier{value: parser.token.literal, token: parser.token}
     {node, parser}
   end
 end

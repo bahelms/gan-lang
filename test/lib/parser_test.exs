@@ -45,6 +45,41 @@ defmodule ParserTest do
     end)
   end
 
+  test "integer literal expressions" do
+    [
+      {"5", 5},
+      {"91923837373832", 91_923_837_373_832}
+    ]
+    |> Enum.each(fn {input, expected_value} ->
+      {root, parser} =
+        input
+        |> Lexer.new()
+        |> Parser.parse_tokens()
+
+      assert_no_errors(parser.errors)
+
+      stmt = hd(root.statements)
+      assert stmt.value == expected_value
+    end)
+  end
+
+  test "identifier expressions" do
+    [
+      {"foobar", "foobar"}
+    ]
+    |> Enum.each(fn {input, expected_value} ->
+      {root, parser} =
+        input
+        |> Lexer.new()
+        |> Parser.parse_tokens()
+
+      assert_no_errors(parser.errors)
+
+      stmt = hd(root.statements)
+      assert stmt.value == expected_value
+    end)
+  end
+
   def assert_no_errors([]), do: nil
 
   def assert_no_errors(errors) do
