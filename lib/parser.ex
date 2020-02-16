@@ -108,7 +108,6 @@ defmodule Parser do
 
   def parse_val_stmt(parser) do
     node = %AST.Val{token: parser.token}
-    parser = next_token(parser)
     {name, parser} = parse_name(parser)
     {value, parser} = parse_value(parser)
     parser = skip_spaces(parser)
@@ -116,12 +115,11 @@ defmodule Parser do
   end
 
   defp parse_name(parser) do
-    parser = skip_spaces(parser)
+    parser = skip_spaces(next_token(parser))
 
     case parser.token.type do
       :IDENT ->
-        {node, _} = parse_identifier(parser)
-        {node, next_token(parser)}
+        parse_identifier(parser)
 
       type ->
         error = "expected next token to be :IDENT, got #{type} instead"
@@ -130,7 +128,7 @@ defmodule Parser do
   end
 
   defp parse_value(parser) do
-    parser = skip_spaces(parser)
+    parser = skip_spaces(next_token(parser))
 
     case parser.token.type do
       :MATCH ->
@@ -139,7 +137,7 @@ defmodule Parser do
           |> next_token()
           |> parse_expression(@lowest)
 
-        {value, next_token(parser)}
+        {value, parser}
 
       type ->
         error = "expected next token to be :MATCH, got #{type} instead"
@@ -162,6 +160,8 @@ defmodule Parser do
   end
 
   defp parse_infix(parser, left_expr, precedence) do
+    parser = skip_spaces(next_token(parser))
+
     if precedence < peek_precedence(parser) do
       case parser.infix_parse_fns[parser.peek.type] do
         nil ->
