@@ -63,7 +63,9 @@ defmodule Parser do
     |> struct(
       prefix_parse_fns: %{
         INT: &parse_integer_literal/1,
-        IDENT: &parse_identifier/1
+        IDENT: &parse_identifier/1,
+        TRUE: &parse_boolean/1,
+        FALSE: &parse_boolean/1
       }
     )
   end
@@ -191,5 +193,15 @@ defmodule Parser do
   defp parse_identifier(parser) do
     node = %AST.Identifier{value: parser.token.literal, token: parser.token}
     {node, parser}
+  end
+
+  defp parse_boolean(parser) do
+    value =
+      case parser.token.type do
+        :TRUE -> true
+        _ -> false
+      end
+
+    {%AST.Boolean{value: value, token: parser.token}, parser}
   end
 end

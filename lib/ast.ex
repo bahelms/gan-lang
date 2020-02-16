@@ -14,4 +14,8 @@ defmodule AST do
   defmodule IntegerLiteral do
     defstruct [:value, :token]
   end
+
+  defmodule Boolean do
+    defstruct [:value, :token]
+  end
 end

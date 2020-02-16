@@ -3,7 +3,9 @@ defmodule Token do
 
   @keyword_types %{
     "val" => :VAL,
-    "fn" => :FUNCTION
+    "fn" => :FUNCTION,
+    "true" => :TRUE,
+    "false" => :FALSE
   }
 
   def match, do: %Token{type: :MATCH, literal: "="}

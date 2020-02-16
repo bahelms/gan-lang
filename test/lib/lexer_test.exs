@@ -170,6 +170,20 @@ defmodule LexerTest do
     ])
   end
 
+  test "boolean expression" do
+    """
+    true
+    false
+    """
+    |> assert_tokens([
+      {:TRUE, "true"},
+      {:NEWLINE, "\n"},
+      {:FALSE, "false"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
   defp assert_tokens(input, tokens) do
     tokens
     |> Enum.reduce(Lexer.new(input), fn {expected_type, expected_literal}, lex ->

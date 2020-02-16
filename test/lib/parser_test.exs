@@ -5,7 +5,7 @@ defmodule ParserTest do
     {root, parser} =
       """
       val x = 5
-      val y = 11
+      val y = false
       """
       |> Lexer.new()
       |> Parser.parse_tokens()
@@ -29,7 +29,8 @@ defmodule ParserTest do
   test "val statements" do
     [
       {"val five = 5", "five", 5},
-      {"val        x        =        0    ", "x", 0}
+      {"val        x        =        0    ", "x", 0},
+      {"val truth = true", "truth", true}
     ]
     |> Enum.each(fn {input, expected_name, expected_value} ->
       {root, parser} =
@@ -66,6 +67,24 @@ defmodule ParserTest do
   test "identifier expressions" do
     [
       {"foobar", "foobar"}
+    ]
+    |> Enum.each(fn {input, expected_value} ->
+      {root, parser} =
+        input
+        |> Lexer.new()
+        |> Parser.parse_tokens()
+
+      assert_no_errors(parser.errors)
+
+      stmt = hd(root.statements)
+      assert stmt.value == expected_value
+    end)
+  end
+
+  test "boolean expressions" do
+    [
+      {"true", true},
+      {"false", false}
     ]
     |> Enum.each(fn {input, expected_value} ->
       {root, parser} =
