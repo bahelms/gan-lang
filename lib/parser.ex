@@ -65,7 +65,8 @@ defmodule Parser do
         INT: &parse_integer_literal/1,
         IDENT: &parse_identifier/1,
         TRUE: &parse_boolean/1,
-        FALSE: &parse_boolean/1
+        FALSE: &parse_boolean/1,
+        STRING: &parse_string_literal/1
       }
     )
   end
@@ -191,8 +192,7 @@ defmodule Parser do
   end
 
   defp parse_identifier(parser) do
-    node = %AST.Identifier{value: parser.token.literal, token: parser.token}
-    {node, parser}
+    {%AST.Identifier{value: parser.token.literal, token: parser.token}, parser}
   end
 
   defp parse_boolean(parser) do
@@ -203,5 +203,9 @@ defmodule Parser do
       end
 
     {%AST.Boolean{value: value, token: parser.token}, parser}
+  end
+
+  defp parse_string_literal(parser) do
+    {%AST.StringLiteral{value: parser.token.literal, token: parser.token}, parser}
   end
 end

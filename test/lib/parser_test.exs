@@ -6,6 +6,7 @@ defmodule ParserTest do
       """
       val x = 5
       val y = false
+      "say what?"
       """
       |> Lexer.new()
       |> Parser.parse_tokens()
@@ -14,7 +15,8 @@ defmodule ParserTest do
 
     expected_nodes = [
       AST.Val,
-      AST.Val
+      AST.Val,
+      AST.StringLiteral
     ]
 
     assert length(root.statements) == length(expected_nodes)
@@ -85,6 +87,23 @@ defmodule ParserTest do
     [
       {"true", true},
       {"false", false}
+    ]
+    |> Enum.each(fn {input, expected_value} ->
+      {root, parser} =
+        input
+        |> Lexer.new()
+        |> Parser.parse_tokens()
+
+      assert_no_errors(parser.errors)
+
+      stmt = hd(root.statements)
+      assert stmt.value == expected_value
+    end)
+  end
+
+  test "string expressions" do
+    [
+      {"\"hello there\"", "hello there"}
     ]
     |> Enum.each(fn {input, expected_value} ->
       {root, parser} =

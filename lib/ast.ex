@@ -15,6 +15,10 @@ defmodule AST do
     defstruct [:value, :token]
   end
 
+  defmodule StringLiteral do
+    defstruct [:value, :token]
+  end
+
   defmodule Boolean do
     defstruct [:value, :token]
   end

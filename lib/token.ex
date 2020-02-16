@@ -24,6 +24,7 @@ defmodule Token do
   def illegal(literal), do: %Token{type: :ILLEGAL, literal: literal}
   def int(literal), do: %Token{type: :INT, literal: literal}
   def ident(literal), do: %Token{type: ident_type(literal), literal: literal}
+  def string(literal), do: %Token{type: :STRING, literal: literal}
 
   defp ident_type(ident) do
     Map.get(@keyword_types, ident, :IDENT)

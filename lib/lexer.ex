@@ -51,6 +51,10 @@ defmodule Lexer do
       ")" ->
         {next_grapheme(lex), Token.rparen()}
 
+      "\"" ->
+        {literal, lex} = read_string(lex)
+        {next_grapheme(lex), Token.string(literal)}
+
       "," ->
         {next_grapheme(lex), Token.comma()}
 
@@ -104,5 +108,18 @@ defmodule Lexer do
 
   defp read_literal(literal, lex, _) do
     {literal, lex}
+  end
+
+  defp read_string(%{input: [grapheme | _]} = lex, string \\ "") do
+    case grapheme do
+      "\"" ->
+        {string, next_grapheme(lex)}
+
+      nil ->
+        {string, lex}
+
+      grapheme ->
+        read_string(next_grapheme(lex), string <> grapheme)
+    end
   end
 end
