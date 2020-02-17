@@ -45,7 +45,7 @@ defmodule LexerTest do
     ])
   end
 
-  test "named function definitions" do
+  test "named function binding with block" do
     """
     fn AddOne(num, extra):
       num + extra - 1
@@ -78,18 +78,33 @@ defmodule LexerTest do
     ])
   end
 
-  test "function literal binding" do
+  test "named function binding one liner" do
     """
-    val multiply = fn(x,y):
+    fn again(num): num+1
+    """
+    |> assert_tokens([
+      {:FUNCTION, "fn"},
+      {:SPACE, " "},
+      {:IDENT, "again"},
+      {:LPAREN, "("},
+      {:IDENT, "num"},
+      {:RPAREN, ")"},
+      {:COLON, ":"},
+      {:SPACE, " "},
+      {:IDENT, "num"},
+      {:PLUS, "+"},
+      {:INT, "1"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
+  test "anonymous function with block" do
+    """
+    fn(x,y):
       x*y
     """
     |> assert_tokens([
-      {:VAL, "val"},
-      {:SPACE, " "},
-      {:IDENT, "multiply"},
-      {:SPACE, " "},
-      {:MATCH, "="},
-      {:SPACE, " "},
       {:FUNCTION, "fn"},
       {:LPAREN, "("},
       {:IDENT, "x"},
@@ -108,7 +123,58 @@ defmodule LexerTest do
     ])
   end
 
-  test "functions definitions without args don't have parens " do
+  test "anonymous function one liner" do
+    """
+    fn(x): x
+    """
+    |> assert_tokens([
+      {:FUNCTION, "fn"},
+      {:LPAREN, "("},
+      {:IDENT, "x"},
+      {:RPAREN, ")"},
+      {:COLON, ":"},
+      {:SPACE, " "},
+      {:IDENT, "x"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
+  test "function bindings without args don't have parens" do
+    """
+    val answer = fn:
+      42
+    fn question:
+      someClosureBinding
+    """
+    |> assert_tokens([
+      {:VAL, "val"},
+      {:SPACE, " "},
+      {:IDENT, "answer"},
+      {:SPACE, " "},
+      {:MATCH, "="},
+      {:SPACE, " "},
+      {:FUNCTION, "fn"},
+      {:COLON, ":"},
+      {:NEWLINE, "\n"},
+      {:SPACE, " "},
+      {:SPACE, " "},
+      {:INT, "42"},
+      {:NEWLINE, "\n"},
+      {:FUNCTION, "fn"},
+      {:SPACE, " "},
+      {:IDENT, "question"},
+      {:COLON, ":"},
+      {:NEWLINE, "\n"},
+      {:SPACE, " "},
+      {:SPACE, " "},
+      {:IDENT, "someClosureBinding"},
+      {:NEWLINE, "\n"},
+      {:EOF, ""}
+    ])
+  end
+
+  test "single line function bindings" do
     """
     val answer = fn:
       42

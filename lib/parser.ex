@@ -1,5 +1,15 @@
 defmodule Parser do
-  defstruct [:lexer, :token, :peek, prefix_parse_fns: %{}, infix_parse_fns: %{}, errors: []]
+  defstruct [
+    :lexer,
+    :token,
+    :peek,
+    block_level: 0,
+    prefix_parse_fns: %{},
+    infix_parse_fns: %{},
+    errors: []
+  ]
+
+  @whitespace_delimiter_count 2
 
   # precedence values
   @lowest 0
@@ -27,6 +37,14 @@ defmodule Parser do
   defp next_token(%{peek: peek} = parser) do
     {lex, token} = Lexer.next_token(parser.lexer)
     struct(parser, lexer: lex, token: peek, peek: token)
+  end
+
+  defp next_token(parser, 0), do: parser
+
+  defp next_token(parser, amount) do
+    parser
+    |> next_token()
+    |> next_token(amount - 1)
   end
 
   defp skip_spaces(parser) do
@@ -66,7 +84,8 @@ defmodule Parser do
         IDENT: &parse_identifier/1,
         TRUE: &parse_boolean/1,
         FALSE: &parse_boolean/1,
-        STRING: &parse_string_literal/1
+        STRING: &parse_string_literal/1,
+        FUNCTION: &parse_function/1
       }
     )
   end
@@ -77,7 +96,11 @@ defmodule Parser do
   end
 
   defp add_error(parser, error) do
-    struct(parser, errors: parser.errors ++ [error])
+    Map.update(parser, :errors, [], &(&1 ++ [error]))
+  end
+
+  defp increment_block_level(parser) do
+    Map.update(parser, :block_level, 0, &(&1 + 1))
   end
 
   defp parse_statements(parser, statements \\ []) do
@@ -103,6 +126,11 @@ defmodule Parser do
     case parser.token.type do
       :VAL ->
         parse_val_stmt(parser)
+
+      :SPACE ->
+        parser
+        |> next_token(parser.block_level * @whitespace_delimiter_count)
+        |> parse_statement()
 
       _ ->
         parse_expression(parser, @lowest)
@@ -207,5 +235,84 @@ defmodule Parser do
 
   defp parse_string_literal(parser) do
     {%AST.StringLiteral{value: parser.token.literal, token: parser.token}, parser}
+  end
+
+  defp parse_function(parser) do
+    node = %AST.Function{token: parser.token}
+    {name, parser} = parse_function_name(parser)
+    {parameters, parser} = parse_parameters(parser)
+    {body, parser} = parse_body(parser)
+    {struct(node, name: name, parameters: parameters, body: body), parser}
+  end
+
+  defp parse_function_name(parser) do
+    parser = skip_spaces(next_token(parser))
+
+    case parser.token.type do
+      :IDENT ->
+        {name, parser} = parse_identifier(parser)
+        {name, next_token(parser)}
+
+      _ ->
+        {nil, parser}
+    end
+  end
+
+  defp parse_parameters(parser) do
+    case parser.token.type do
+      :LPAREN ->
+        parse_parameters(parser, [])
+
+      type ->
+        error = "expected next token to be :LPAREN, got #{type} instead"
+        {nil, add_error(parser, error)}
+    end
+  end
+
+  defp parse_parameters(parser, params) do
+    parser = skip_spaces(next_token(parser))
+
+    case parser.token.type do
+      :RPAREN ->
+        {params, next_token(parser)}
+
+      :COMMA ->
+        parse_parameters(parser, params)
+
+      :IDENT ->
+        {param, parser} = parse_identifier(parser)
+        parse_parameters(parser, params ++ [param])
+
+      type ->
+        error = "expected next token to be :RPAREN, :COMMA, :IDENT, got #{type} instead"
+        {nil, add_error(parser, error)}
+    end
+  end
+
+  defp parse_body(parser) do
+    case parser.token.type do
+      :COLON ->
+        parser = skip_spaces(next_token(parser))
+
+        case parser.token.type do
+          :NEWLINE ->
+            block = %AST.Block{token: parser.token}
+
+            {exprs, parser} =
+              parser
+              |> next_token()
+              |> increment_block_level()
+              |> parse_statements()
+
+            {Map.put(block, :expressions, exprs), parser}
+
+          _ ->
+            IO.inspect(parser, label: "one line expression")
+        end
+
+      type ->
+        error = "expected next token to be :COLON, got #{type} instead"
+        {nil, add_error(parser, error)}
+    end
   end
 end

@@ -48,7 +48,7 @@ defmodule ParserTest do
     end)
   end
 
-  test "integer literal expressions" do
+  test "integer expressions" do
     [
       {"5", 5},
       {"91923837373832", 91_923_837_373_832}
@@ -116,6 +116,29 @@ defmodule ParserTest do
       stmt = hd(root.statements)
       assert stmt.value == expected_value
     end)
+  end
+
+  test "named function binding" do
+    {root, parser} =
+      """
+      fn yo(x, another):
+        val str = "str expr"
+        x
+      """
+      |> Lexer.new()
+      |> Parser.parse_tokens()
+
+    assert_no_errors(parser.errors)
+
+    func = hd(root.statements)
+    assert func.name.value == "yo"
+    assert Enum.map(func.parameters, & &1.value) == ["x", "another"]
+
+    [val | exprs] = func.body.expressions
+    assert val.name.value == "str"
+    assert val.value.value == "str expr"
+    [ident | _] = exprs
+    assert ident.value == "x"
   end
 
   def assert_no_errors([]), do: nil

@@ -22,4 +22,12 @@ defmodule AST do
   defmodule Boolean do
     defstruct [:value, :token]
   end
+
+  defmodule Function do
+    defstruct [:name, :body, :token, parameters: []]
+  end
+
+  defmodule Block do
+    defstruct [:token, expressions: []]
+  end
 end
