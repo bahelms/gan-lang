@@ -1,25 +1,5 @@
-defmodule Macros do
-  @doc """
-  This only supports ASCII for now.
-  """
-  @spec letter?(String.t()) :: boolean()
-  defmacro letter?(grapheme) do
-    quote do
-      (unquote(grapheme) >= "A" and unquote(grapheme) <= "Z") or
-        (unquote(grapheme) >= "a" and unquote(grapheme) <= "z")
-    end
-  end
-
-  @spec digit?(String.t()) :: boolean()
-  defmacro digit?(grapheme) do
-    quote do
-      unquote(grapheme) >= "0" and unquote(grapheme) <= "9"
-    end
-  end
-end
-
 defmodule Lexer do
-  defstruct [:input, :grapheme]
+  defstruct [:input, :grapheme, :previous]
 
   import Macros
 
@@ -62,7 +42,14 @@ defmodule Lexer do
         {next_grapheme(lex), Token.colon()}
 
       " " ->
-        {next_grapheme(lex), Token.space()}
+        case lex.previous do
+          "\n" ->
+            {count, lex} = read_spaces(lex)
+            {lex, Token.space(String.duplicate(" ", count))}
+
+          _ ->
+            next_token(next_grapheme(lex))
+        end
 
       "\n" ->
         {next_grapheme(lex), Token.newline()}
@@ -74,6 +61,14 @@ defmodule Lexer do
         tokenize_unknown(grapheme, lex)
     end
   end
+
+  defp read_spaces(lex, count \\ 0)
+
+  defp read_spaces(%{grapheme: " "} = lex, count) do
+    read_spaces(next_grapheme(lex), count + 1)
+  end
+
+  defp read_spaces(lex, count), do: {count, lex}
 
   defp tokenize_unknown(grapheme, lex) when letter?(grapheme) do
     {literal, lex} = read_literal(grapheme, lex, &letter?/1)
@@ -90,12 +85,12 @@ defmodule Lexer do
     {lex, Token.illegal(grapheme)}
   end
 
-  defp next_grapheme(%{input: [grapheme | input]} = lex) do
-    struct(lex, grapheme: grapheme, input: input)
+  defp next_grapheme(%{grapheme: previous, input: [grapheme | input]} = lex) do
+    struct(lex, grapheme: grapheme, previous: previous, input: input)
   end
 
-  defp next_grapheme(%{input: []} = lex) do
-    struct(lex, grapheme: nil)
+  defp next_grapheme(%{grapheme: previous, input: []} = lex) do
+    struct(lex, grapheme: nil, previous: previous)
   end
 
   defp read_literal(literal, %{input: [grapheme | _]} = lex, condition) do

@@ -26,7 +26,6 @@ defmodule Parser do
     |> register_prefix_fns()
     |> register_infix_fns()
     |> next_token()
-    |> next_token()
   end
 
   def parse_tokens(lexer) do
@@ -35,28 +34,8 @@ defmodule Parser do
   end
 
   defp next_token(%{peek: peek} = parser) do
-    {lex, token} = Lexer.next_token(parser.lexer)
-    struct(parser, lexer: lex, token: peek, peek: token)
-  end
-
-  defp next_token(parser, 0), do: parser
-
-  defp next_token(parser, amount) do
-    parser
-    |> next_token()
-    |> next_token(amount - 1)
-  end
-
-  defp skip_spaces(parser) do
-    case parser.token.type do
-      :SPACE ->
-        parser
-        |> next_token()
-        |> skip_spaces()
-
-      _ ->
-        parser
-    end
+    {lex, next} = Lexer.next_token(parser.lexer)
+    struct(parser, lexer: lex, token: peek, peek: next)
   end
 
   defp set_precedences(parser) do
@@ -103,34 +82,58 @@ defmodule Parser do
     Map.update(parser, :block_level, 0, &(&1 + 1))
   end
 
-  defp parse_statements(parser, statements \\ []) do
-    if parser.token.type != :EOF do
-      {statements, parser} =
-        case parse_statement(parser) do
-          {nil, parser} ->
-            {statements, parser}
+  defp decrement_block_level(parser) do
+    Map.update(parser, :block_level, 0, &(&1 - 1))
+  end
 
-          {stmt, parser} ->
-            {statements ++ [stmt], parser}
+  defp parse_statements(parser, statements \\ []) do
+    parser = next_token(parser)
+
+    case parser.token.type do
+      :EOF ->
+        {statements, parser}
+
+      :SPACE ->
+        parse_statements(parser, statements)
+
+      :NEWLINE ->
+        block_indent = parser.block_level * @whitespace_delimiter_count
+        indent = calculate_ident(parser.peek)
+
+        cond do
+          block_indent == indent ->
+            parse_statements(parser, statements)
+
+          block_indent > indent ->
+            {statements, parser}
         end
 
-      parser
-      |> next_token()
-      |> parse_statements(statements)
-    else
-      {statements, parser}
+      _ ->
+        {statements, parser} =
+          case parse_statement(parser) do
+            {nil, parser} ->
+              {statements, parser}
+
+            {stmt, parser} ->
+              {statements ++ [stmt], parser}
+          end
+
+        parse_statements(parser, statements)
     end
   end
+
+  defp calculate_ident(nil), do: 0
+
+  defp calculate_ident(%{type: :SPACE, literal: literal}) do
+    String.length(literal)
+  end
+
+  defp calculate_ident(_), do: 0
 
   def parse_statement(parser) do
     case parser.token.type do
       :VAL ->
         parse_val_stmt(parser)
-
-      :SPACE ->
-        parser
-        |> next_token(parser.block_level * @whitespace_delimiter_count)
-        |> parse_statement()
 
       _ ->
         parse_expression(parser, @lowest)
@@ -141,12 +144,11 @@ defmodule Parser do
     node = %AST.Val{token: parser.token}
     {name, parser} = parse_name(parser)
     {value, parser} = parse_value(parser)
-    parser = skip_spaces(parser)
     {struct(node, name: name, value: value), parser}
   end
 
   defp parse_name(parser) do
-    parser = skip_spaces(next_token(parser))
+    parser = next_token(parser)
 
     case parser.token.type do
       :IDENT ->
@@ -159,7 +161,7 @@ defmodule Parser do
   end
 
   defp parse_value(parser) do
-    parser = skip_spaces(next_token(parser))
+    parser = next_token(parser)
 
     case parser.token.type do
       :MATCH ->
@@ -177,8 +179,6 @@ defmodule Parser do
   end
 
   defp parse_expression(parser, precedence) do
-    parser = skip_spaces(parser)
-
     case parser.prefix_parse_fns[parser.token.type] do
       nil ->
         error = "Prefix Parse function not found for #{parser.token.type}"
@@ -191,20 +191,18 @@ defmodule Parser do
   end
 
   defp parse_infix(parser, left_expr, precedence) do
-    parser = skip_spaces(next_token(parser))
+    case parser.infix_parse_fns[parser.peek.type] do
+      nil ->
+        {left_expr, parser}
 
-    if precedence < peek_precedence(parser) do
-      case parser.infix_parse_fns[parser.peek.type] do
-        nil ->
-          {left_expr, parser}
-
-        infix ->
+      infix ->
+        if precedence < peek_precedence(parser) do
           parser
           |> next_token()
           |> infix.(left_expr)
-      end
-    else
-      {left_expr, parser}
+        else
+          {left_expr, parser}
+        end
     end
   end
 
@@ -246,19 +244,21 @@ defmodule Parser do
   end
 
   defp parse_function_name(parser) do
-    parser = skip_spaces(next_token(parser))
+    parser = next_token(parser)
 
     case parser.token.type do
       :IDENT ->
-        {name, parser} = parse_identifier(parser)
-        {name, next_token(parser)}
+        parse_identifier(parser)
 
       _ ->
+        # anonymous fn
         {nil, parser}
     end
   end
 
   defp parse_parameters(parser) do
+    parser = next_token(parser)
+
     case parser.token.type do
       :LPAREN ->
         parse_parameters(parser, [])
@@ -270,7 +270,7 @@ defmodule Parser do
   end
 
   defp parse_parameters(parser, params) do
-    parser = skip_spaces(next_token(parser))
+    parser = next_token(parser)
 
     case parser.token.type do
       :RPAREN ->
@@ -292,7 +292,7 @@ defmodule Parser do
   defp parse_body(parser) do
     case parser.token.type do
       :COLON ->
-        parser = skip_spaces(next_token(parser))
+        parser = next_token(parser)
 
         case parser.token.type do
           :NEWLINE ->
@@ -300,10 +300,10 @@ defmodule Parser do
 
             {exprs, parser} =
               parser
-              |> next_token()
               |> increment_block_level()
               |> parse_statements()
 
+            parser = decrement_block_level(parser)
             {Map.put(block, :expressions, exprs), parser}
 
           _ ->

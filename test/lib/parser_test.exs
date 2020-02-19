@@ -6,7 +6,11 @@ defmodule ParserTest do
       """
       val x = 5
       val y = false
-      "say what?"
+
+      fn heyThere(no):
+        "say what?"
+
+      val z = x
       """
       |> Lexer.new()
       |> Parser.parse_tokens()
@@ -16,7 +20,8 @@ defmodule ParserTest do
     expected_nodes = [
       AST.Val,
       AST.Val,
-      AST.StringLiteral
+      AST.Function,
+      AST.Val
     ]
 
     assert length(root.statements) == length(expected_nodes)
@@ -124,13 +129,14 @@ defmodule ParserTest do
       fn yo(x, another):
         val str = "str expr"
         x
+      "block ended up there ^ "
       """
       |> Lexer.new()
       |> Parser.parse_tokens()
 
     assert_no_errors(parser.errors)
 
-    func = hd(root.statements)
+    [func | rest] = root.statements
     assert func.name.value == "yo"
     assert Enum.map(func.parameters, & &1.value) == ["x", "another"]
 
@@ -139,6 +145,8 @@ defmodule ParserTest do
     assert val.value.value == "str expr"
     [ident | _] = exprs
     assert ident.value == "x"
+
+    assert hd(rest).value == "block ended up there ^ "
   end
 
   def assert_no_errors([]), do: nil

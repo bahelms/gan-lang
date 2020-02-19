@@ -5,11 +5,8 @@ defmodule LexerTest do
     "val five = 5"
     |> assert_tokens([
       {:VAL, "val"},
-      {:SPACE, " "},
       {:IDENT, "five"},
-      {:SPACE, " "},
       {:MATCH, "="},
-      {:SPACE, " "},
       {:INT, "5"},
       {:EOF, ""}
     ])
@@ -22,23 +19,15 @@ defmodule LexerTest do
     """
     |> assert_tokens([
       {:VAL, "val"},
-      {:SPACE, " "},
       {:IDENT, "five"},
-      {:SPACE, " "},
       {:MATCH, "="},
-      {:SPACE, " "},
       {:INT, "5"},
       {:NEWLINE, "\n"},
       {:VAL, "val"},
-      {:SPACE, " "},
       {:IDENT, "another"},
-      {:SPACE, " "},
       {:MATCH, "="},
-      {:SPACE, " "},
       {:INT, "10"},
-      {:SPACE, " "},
       {:FSLASH, "/"},
-      {:SPACE, " "},
       {:INT, "2"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
@@ -52,26 +41,19 @@ defmodule LexerTest do
     """
     |> assert_tokens([
       {:FUNCTION, "fn"},
-      {:SPACE, " "},
       {:IDENT, "AddOne"},
       {:LPAREN, "("},
       {:IDENT, "num"},
       {:COMMA, ","},
-      {:SPACE, " "},
       {:IDENT, "extra"},
       {:RPAREN, ")"},
       {:COLON, ":"},
       {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
+      {:SPACE, "  "},
       {:IDENT, "num"},
-      {:SPACE, " "},
       {:PLUS, "+"},
-      {:SPACE, " "},
       {:IDENT, "extra"},
-      {:SPACE, " "},
       {:MINUS, "-"},
-      {:SPACE, " "},
       {:INT, "1"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
@@ -80,17 +62,15 @@ defmodule LexerTest do
 
   test "named function binding one liner" do
     """
-    fn again(num): num+1
+    fn again(num): num + 1
     """
     |> assert_tokens([
       {:FUNCTION, "fn"},
-      {:SPACE, " "},
       {:IDENT, "again"},
       {:LPAREN, "("},
       {:IDENT, "num"},
       {:RPAREN, ")"},
       {:COLON, ":"},
-      {:SPACE, " "},
       {:IDENT, "num"},
       {:PLUS, "+"},
       {:INT, "1"},
@@ -113,8 +93,7 @@ defmodule LexerTest do
       {:RPAREN, ")"},
       {:COLON, ":"},
       {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
+      {:SPACE, "  "},
       {:IDENT, "x"},
       {:ASTERISK, "*"},
       {:IDENT, "y"},
@@ -133,7 +112,6 @@ defmodule LexerTest do
       {:IDENT, "x"},
       {:RPAREN, ")"},
       {:COLON, ":"},
-      {:SPACE, " "},
       {:IDENT, "x"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
@@ -149,25 +127,19 @@ defmodule LexerTest do
     """
     |> assert_tokens([
       {:VAL, "val"},
-      {:SPACE, " "},
       {:IDENT, "answer"},
-      {:SPACE, " "},
       {:MATCH, "="},
-      {:SPACE, " "},
       {:FUNCTION, "fn"},
       {:COLON, ":"},
       {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
+      {:SPACE, "  "},
       {:INT, "42"},
       {:NEWLINE, "\n"},
       {:FUNCTION, "fn"},
-      {:SPACE, " "},
       {:IDENT, "question"},
       {:COLON, ":"},
       {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
+      {:SPACE, "  "},
       {:IDENT, "someClosureBinding"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
@@ -176,32 +148,20 @@ defmodule LexerTest do
 
   test "single line function bindings" do
     """
-    val answer = fn:
-      42
-    fn question:
-      someClosureBinding
+    val answer = fn: 42
+    fn question: someClosureBinding
     """
     |> assert_tokens([
       {:VAL, "val"},
-      {:SPACE, " "},
       {:IDENT, "answer"},
-      {:SPACE, " "},
       {:MATCH, "="},
-      {:SPACE, " "},
       {:FUNCTION, "fn"},
       {:COLON, ":"},
-      {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
       {:INT, "42"},
       {:NEWLINE, "\n"},
       {:FUNCTION, "fn"},
-      {:SPACE, " "},
       {:IDENT, "question"},
       {:COLON, ":"},
-      {:NEWLINE, "\n"},
-      {:SPACE, " "},
-      {:SPACE, " "},
       {:IDENT, "someClosureBinding"},
       {:NEWLINE, "\n"},
       {:EOF, ""}
@@ -218,7 +178,6 @@ defmodule LexerTest do
       {:LPAREN, "("},
       {:IDENT, "num"},
       {:COMMA, ","},
-      {:SPACE, " "},
       {:INT, "9"},
       {:RPAREN, ")"},
       {:NEWLINE, "\n"},
@@ -227,7 +186,6 @@ defmodule LexerTest do
       {:IDENT, "x"},
       {:RPAREN, ")"},
       {:COLON, ":"},
-      {:SPACE, " "},
       {:IDENT, "x"},
       {:FSLASH, "/"},
       {:INT, "0"},

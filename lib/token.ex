@@ -17,7 +17,6 @@ defmodule Token do
   def rparen, do: %Token{type: :RPAREN, literal: ")"}
   def comma, do: %Token{type: :COMMA, literal: ","}
   def colon, do: %Token{type: :COLON, literal: ":"}
-  def space, do: %Token{type: :SPACE, literal: " "}
   def newline, do: %Token{type: :NEWLINE, literal: "\n"}
   def eof, do: %Token{type: :EOF, literal: ""}
 
@@ -25,6 +24,7 @@ defmodule Token do
   def int(literal), do: %Token{type: :INT, literal: literal}
   def ident(literal), do: %Token{type: ident_type(literal), literal: literal}
   def string(literal), do: %Token{type: :STRING, literal: literal}
+  def space(literal), do: %Token{type: :SPACE, literal: literal}
 
   defp ident_type(ident) do
     Map.get(@keyword_types, ident, :IDENT)
