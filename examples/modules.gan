@@ -1,0 +1,31 @@
+# rectangle.gan
+pub struct Rectangle:
+  width int
+  height int
+
+pub fn area(r Rectangle) int:
+  r.width * r.height
+
+fn private_func: log("this is private")
+
+
+# main.gan
+import rectangle
+ 
+val rect = rectangle.Rectangle(width: 30, height: 50)
+log("area", rectangle.area(rect))
+rectangle.private_func()  # error
+
+
+# main.gan
+import Rectangle from rectangle
+ 
+val rect = Rectangle(width: 30, height: 50)
+log("area", rectangle.area(rect))  # error
+
+
+# main.gan
+import Rectangle as myRect, area from rectangle
+ 
+val rect = myRect(width: 30, height: 50)
+log("area", area(rect))

@@ -8,7 +8,7 @@ defmodule Gan.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      compilers: Mix.compilers() ++ [:nifs, :rustler],
+      compilers: Mix.compilers() ++ [:rustler],
       rustler_crates: [rustnif: []]
     ]
   end

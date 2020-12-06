@@ -56,15 +56,17 @@ pub fn square(size int) Rectangle:
 
 
 # main.gan
+import Rectangle from rectangle 
+ 
 val rect = Rectangle(width: 30, height: 50)
 val rect2 = Rectangle(width: 10, height: 40)
 val rect3 = Rectangle(width: 60, height: 45)
 
-log("area", Rectangle.area(rect))
+log("area", rectangle.area(rect))
 log("Rect #{rect}")
 
 log("Can rect hold rect2? #{Rectangle.canHold?(rect, rect2)}")
 log("Can rect hold rect3? #{Rectangle.canHold?(rect, rect3)}")
 
-val square = Rectangle.square(3)
+val square = rectangle.square(3)
 log("Square #{square}")
